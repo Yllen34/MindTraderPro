@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Journal de Trading - Test</title>
+</head>
+<body>
+    <h1>Ajouter un trade</h1>
+    <form id="tradeForm" onsubmit="submitTrade(event)">
+        <label>Paire: <input type="text" id="paire" required></label><br>
+        <label>Type: <input type="text" id="type" required></label><br>
+        <label>Lot: <input type="number" step="0.01" id="lot" required></label><br>
+        <label>Entrée: <input type="number" step="0.01" id="entry" required></label><br>
+        <label>SL: <input type="number" step="0.01" id="sl" required></label><br>
+        <label>TP: <input type="number" step="0.01" id="tp" required></label><br>
+        <label>RR: <input type="number" step="0.01" id="rr" required></label><br>
+        <label>Gain: <input type="number" step="0.01" id="gain" required></label><br>
+        <label>Note: <input type="text" id="note"></label><br>
+        <label>Tag: <input type="text" id="tag"></label><br>
+        <button type="submit">Ajouter</button>
+    </form>
+
+    <h2>Liste des trades</h2>
+    <button onclick="fetchTrades()">Actualiser</button>
+    <pre id="tradesOutput" style="background:#f0f0f0; padding:10px;"></pre>
+
+    <h2>Transcription audio</h2>
+    <form action="/api/journal/transcription" method="post" enctype="multipart/form-data">
+        <input type="file" name="audio" accept="audio/*,video/mp4" required>
+        <button type="submit">Transcrire</button>
+    </form>
+
+    <h2>Exporter le journal</h2>
+    <a href="/api/journal/export" target="_blank">Télécharger en CSV</a>
+
+    <script>
+        function submitTrade(event) {
+            event.preventDefault();
+            const data = {
+                paire: document.getElementById("paire").value,
+                type: document.getElementById("type").value,
+                lot: parseFloat(document.getElementById("lot").value),
+                entry: parseFloat(document.getElementById("entry").value),
+                sl: parseFloat(document.getElementById("sl").value),
+                tp: parseFloat(document.getElementById("tp").value),
+                rr: parseFloat(document.getElementById("rr").value),
+                gain: parseFloat(document.getElementById("gain").value),
+                note: document.getElementById("note").value,
+                tag: document.getElementById("tag").value
+            };
+            fetch("/api/journal", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(data)
+            }).then(response => response.json()).then(data => {
+                alert("Trade ajouté !");
+                fetchTrades();
+            });
+        }
+
+        function fetchTrades() {
+            fetch("/api/journal")
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById("tradesOutput").textContent = JSON.stringify(data, null, 2);
+                });
+        }
+    </script>
+</body>
+</html>
