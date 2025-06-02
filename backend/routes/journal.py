@@ -1,7 +1,9 @@
-from flask import Blueprint, request, jsonify
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# Import direct depuis backend.routes → pas besoin de sys.path
-from ..services.journal_service import insert_journal_entry, get_all_journal_entries
+from flask import Blueprint, request, jsonify
+from services.journal_service import insert_journal_entry, get_all_journal_entries
 
 journal_bp = Blueprint('journal', __name__)
 
@@ -31,8 +33,8 @@ def ajouter_entree_journal():
     except Exception as e:
         return jsonify({
             "status": "error",
-            "message": str(e)
-        }), 500
+            "message": str(e)}
+        ), 500
 
 
 @journal_bp.route('/journal', methods=['GET'])
