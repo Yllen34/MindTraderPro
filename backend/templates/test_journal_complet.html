@@ -1,0 +1,176 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Journal de Trading - Complet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #1e1e2f; color: #fff; padding: 20px; font-family: 'Segoe UI', sans-serif; }
+    .form-label { color: #ccc; }
+    .dropdown-menu { max-height: 200px; overflow-y: auto; background-color: #2a2a40; }
+    .dropdown-item { color: #eee; }
+    .dropdown-item:hover { background-color: #444; }
+    .tp-container { display: none; margin-top: 10px; }
+    .emoji-group span { font-size: 1.5em; cursor: pointer; margin-right: 10px; }
+    .emoji-selected { border: 2px solid yellow; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1 class="mb-4">Journal de Trading (Avancé)</h1>
+    <form id="tradeForm" class="row g-3" onsubmit="submitTrade(event)">
+      <div class="col-md-6">
+        <label class="form-label">Choisir une paire</label>
+        <div id="pairDropdown" class="dropdown">
+          <button class="btn btn-secondary dropdown-toggle w-100" type="button" id="dropdownMenuButton" data-bs-toggle="dropdown">
+            Sélectionner une paire
+          </button>
+          <ul class="dropdown-menu w-100" id="pairList"></ul>
+        </div>
+        <input type="hidden" id="paire" name="paire" required>
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Ajouter une paire personnalisée</label>
+        <div class="input-group">
+          <input type="text" class="form-control" id="newPairInput" placeholder="ex: BTCUSD">
+          <button type="button" class="btn btn-warning" onclick="addNewPair()">Ajouter</button>
+        </div>
+      </div>
+      <div class="col-md-2">
+        <label class="form-label">Type</label>
+        <select id="type" class="form-select">
+          <option value="Buy">Buy</option>
+          <option value="Sell">Sell</option>
+        </select>
+      </div>
+      <div class="col-md-2"><label class="form-label">Lot</label><input type="number" step="0.01" class="form-control" id="lot" required></div>
+      <div class="col-md-2"><label class="form-label">Entrée</label><input type="number" step="0.01" class="form-control" id="entry" required></div>
+      <div class="col-md-2"><label class="form-label">SL</label><input type="number" step="0.01" class="form-control" id="sl" required></div>
+      <div class="col-md-4">
+        <label class="form-label">TP Mode</label>
+        <select id="tpMode" class="form-select" onchange="toggleTPMode()">
+          <option value="unique">TP Unique</option>
+          <option value="multiple">TP Multiple</option>
+        </select>
+        <div class="tp-container" id="tpContainer">
+          <label class="form-label mt-2">Nombre de TP</label>
+          <select id="tpCount" class="form-select" onchange="generateTPInputs()">
+            <option value="2">2 TP</option>
+            <option value="3">3 TP</option>
+            <option value="4">4 TP</option>
+          </select>
+          <div id="tpInputs" class="mt-2"></div>
+        </div>
+        <div id="tpUniqueInput" class="mt-2">
+          <label class="form-label">TP</label>
+          <input type="number" step="0.01" class="form-control" id="tp">
+        </div>
+      </div>
+      <div class="col-md-3"><label class="form-label">Gain (€ ou pips)</label><input type="text" class="form-control" id="gain" required></div>
+      <div class="col-md-3"><label class="form-label">Note</label><input type="text" class="form-control" id="note"></div>
+      <div class="col-md-3"><label class="form-label">Lien TradingView</label><input type="url" class="form-control" id="tvLink"></div>
+      <div class="col-md-2"><label class="form-label">Note /10</label><input type="number" max="10" min="1" class="form-control" id="rating"></div>
+      <div class="col-md-12">
+        <label class="form-label">Émotions avant / pendant / après</label>
+        <div class="emoji-group" id="emotionsGroup">😊 😐 😢 😠 😍 😎 🧘‍♂️</div>
+      </div>
+      <div class="col-md-12">
+        <label class="form-label">Note vocale</label>
+        <input type="file" accept="audio/*" class="form-control" id="audioNote">
+      </div>
+      <div class="col-md-12 text-end mt-3">
+        <button type="submit" class="btn btn-success">Enregistrer le trade</button>
+      </div>
+    </form>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function () {
+      const pairList = document.getElementById("pairList");
+      const pairButton = document.getElementById("dropdownMenuButton");
+      const pairInput = document.getElementById("paire");
+      const defaultPairs = ["EURUSD", "GBPUSD", "USDJPY", "XAUUSD", "BTCUSD"];
+      let customPairs = JSON.parse(localStorage.getItem("customPairs") || "[]");
+      let favorites = JSON.parse(localStorage.getItem("favPairs") || "[]");
+
+      function renderPairs() {
+        pairList.innerHTML = "";
+        const allPairs = [...new Set([...favorites, ...defaultPairs, ...customPairs])];
+        allPairs.forEach(pair => {
+          const item = document.createElement("li");
+          item.className = "dropdown-item d-flex justify-content-between align-items-center";
+          const label = document.createElement("span");
+          label.textContent = pair;
+          label.onclick = () => {
+            pairButton.textContent = pair;
+            pairInput.value = pair;
+          };
+          const star = document.createElement("span");
+          star.innerHTML = favorites.includes(pair) ? "⭐" : "☆";
+          star.style.cursor = "pointer";
+          star.onclick = (e) => {
+            e.stopPropagation();
+            if (favorites.includes(pair)) {
+              favorites = favorites.filter(p => p !== pair);
+            } else {
+              favorites.unshift(pair);
+            }
+            localStorage.setItem("favPairs", JSON.stringify(favorites));
+            renderPairs();
+          };
+          item.appendChild(label);
+          item.appendChild(star);
+          pairList.appendChild(item);
+        });
+
+        const addItem = document.createElement("li");
+        addItem.className = "dropdown-item text-warning text-center";
+        addItem.textContent = "+ Ajouter une paire";
+        addItem.onclick = () => {
+          document.getElementById("newPairInput").focus();
+        };
+        pairList.appendChild(addItem);
+      }
+
+      window.addNewPair = () => {
+        const newPair = document.getElementById("newPairInput").value.toUpperCase();
+        if (newPair && !customPairs.includes(newPair)) {
+          customPairs.push(newPair);
+          localStorage.setItem("customPairs", JSON.stringify(customPairs));
+          renderPairs();
+          document.getElementById("newPairInput").value = "";
+        }
+      };
+
+      renderPairs();
+    });
+
+    function toggleTPMode() {
+      const mode = document.getElementById("tpMode").value;
+      document.getElementById("tpContainer").style.display = mode === "multiple" ? "block" : "none";
+      document.getElementById("tpUniqueInput").style.display = mode === "unique" ? "block" : "none";
+    }
+
+    function generateTPInputs() {
+      const count = parseInt(document.getElementById("tpCount").value);
+      const container = document.getElementById("tpInputs");
+      container.innerHTML = "";
+      for (let i = 1; i <= count; i++) {
+        const input = document.createElement("input");
+        input.type = "number";
+        input.step = "0.01";
+        input.className = "form-control mb-2";
+        input.placeholder = `TP${i}`;
+        input.name = `tp${i}`;
+        container.appendChild(input);
+      }
+    }
+
+    function submitTrade(event) {
+      event.preventDefault();
+      alert("Formulaire prêt à être envoyé au backend !");
+    }
+  </script>
+</body>
+</html>
