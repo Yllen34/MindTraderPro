@@ -7,7 +7,24 @@
 <body>
     <h1>Ajouter un trade</h1>
     <form id="tradeForm" onsubmit="submitTrade(event)">
-        <label>Paire: <input type="text" id="paire" required></label><br>
+        <label>Paire :
+            <select id="presetPairs" onchange="updateCustomPair(this.value)">
+                <option value="">-- Choisir une paire --</option>
+                <option value="EURUSD">EURUSD</option>
+                <option value="GBPUSD">GBPUSD</option>
+                <option value="USDJPY">USDJPY</option>
+                <option value="XAUUSD">XAUUSD</option>
+                <option value="NAS100">NAS100</option>
+                <option value="US30">US30</option>
+                <option value="BTCUSD">BTCUSD</option>
+                <option value="ETHUSD">ETHUSD</option>
+            </select>
+        </label><br>
+        <label>Ou entre ta paire personnalisée :
+            <input type="text" id="customPair" oninput="updateCustomPair(this.value)">
+        </label><br>
+        <input type="hidden" id="paire" required>
+
         <label>Type: <input type="text" id="type" required></label><br>
         <label>Lot: <input type="number" step="0.01" id="lot" required></label><br>
         <label>Entrée: <input type="number" step="0.01" id="entry" required></label><br>
@@ -34,6 +51,10 @@
     <a href="/api/journal/export" target="_blank">Télécharger en CSV</a>
 
     <script>
+        function updateCustomPair(value) {
+            document.getElementById("paire").value = value.toUpperCase();
+        }
+
         function submitTrade(event) {
             event.preventDefault();
             const data = {
