@@ -1,17 +1,12 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 from flask import Blueprint, request, jsonify
-from services.journal_service import insert_journal_entry, get_all_journal_entries
+
+# Import direct depuis backend.routes → pas besoin de sys.path
+from ..services.journal_service import insert_journal_entry, get_all_journal_entries
 
 journal_bp = Blueprint('journal', __name__)
 
 @journal_bp.route('/journal', methods=['POST'])
 def ajouter_entree_journal():
-    """
-    Enregistre une entrée de journal de trading dans la base de données.
-    """
     try:
         data = request.json
 
@@ -42,9 +37,6 @@ def ajouter_entree_journal():
 
 @journal_bp.route('/journal', methods=['GET'])
 def lire_journal():
-    """
-    Retourne toutes les entrées enregistrées dans le journal.
-    """
     try:
         entries = get_all_journal_entries()
         return jsonify({
