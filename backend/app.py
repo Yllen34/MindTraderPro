@@ -49,4 +49,4 @@ def index():
     })
 
 if __name__ == '__main__':
-    app.run(debug=os.getenv('FLASK_DEBUG', 'False') == 'True')
+    app.run(host='0.0.0.0', port=10000, debug=os.getenv('FLASK_DEBUG', 'False') == 'True')
