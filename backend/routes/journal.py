@@ -50,3 +50,38 @@ def lire_journal():
             "status": "error",
             "message": str(e)
         }), 500
+
+import tempfile
+import openai
+from flask import request
+
+@journal_bp.route('/journal/transcription', methods=['POST'])
+def transcrire_note_vocale():
+    """
+    Transcrit un fichier audio ou vidéo (mp3, wav, mp4, m4a, etc.)
+    en texte via l'API Whisper (OpenAI).
+    """
+    try:
+        if 'audio' not in request.files:
+            return jsonify({"status": "error", "message": "Fichier audio manquant"}), 400
+
+        audio_file = request.files['audio']
+
+        # Sauvegarde temporaire
+        with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as temp_audio:
+            audio_file.save(temp_audio.name)
+
+            # Transcription avec OpenAI Whisper
+            openai.api_key = os.getenv("OPENAI_API_KEY")
+            transcription = openai.Audio.transcribe("whisper-1", open(temp_audio.name, "rb"))
+
+        return jsonify({
+            "status": "success",
+            "transcription": transcription["text"]
+        }), 200
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
