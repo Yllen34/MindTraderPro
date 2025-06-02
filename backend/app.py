@@ -26,9 +26,11 @@ def register_blueprints(app):
     """Enregistre les blueprints pour les routes."""
     from routes.main_routes import main_bp
     from routes.calculateur import calculateur_bp
+    from routes.journal import journal_bp
 
     app.register_blueprint(main_bp, url_prefix='/api')
     app.register_blueprint(calculateur_bp, url_prefix='/api')
+    app.register_blueprint(journal_bp, url_prefix='/api')
 
 # Création de l'application
 app = create_app()
