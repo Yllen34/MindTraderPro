@@ -1,19 +1,24 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from flask import Blueprint, request, jsonify
-from services.journal_service import insert_journal_entry
+from services.journal_service import insert_journal_entry, get_all_journal_entries
 
 journal_bp = Blueprint('journal', __name__)
 
 @journal_bp.route('/journal', methods=['POST'])
 def ajouter_entree_journal():
     """
-    Enregistre une entrée dans le journal de trading.
-    Les champs requis sont : pair, entry, sl, tp, result, risked_amount, strategy, emotion, respected_plan.
-    Le champ commentaire est facultatif.
+    Enregistre une entrée de journal de trading dans la base de données.
     """
     try:
         data = request.json
 
-        required_fields = ['pair', 'entry', 'sl', 'tp', 'result', 'risked_amount', 'strategy', 'emotion', 'respected_plan']
+        required_fields = [
+            'pair', 'entry', 'sl', 'tp', 'result',
+            'risked_amount', 'strategy', 'emotion', 'respected_plan'
+        ]
         for field in required_fields:
             if field not in data:
                 return jsonify({
@@ -33,12 +38,12 @@ def ajouter_entree_journal():
             "status": "error",
             "message": str(e)
         }), 500
-from services.journal_service import get_all_journal_entries
+
 
 @journal_bp.route('/journal', methods=['GET'])
 def lire_journal():
     """
-    Retourne toutes les entrées du journal de trading.
+    Retourne toutes les entrées enregistrées dans le journal.
     """
     try:
         entries = get_all_journal_entries()
