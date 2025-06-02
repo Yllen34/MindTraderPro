@@ -1,48 +1,74 @@
 import sqlite3
 import os
+from datetime import datetime
 
-# Définir le chemin vers la base de données SQLite
-DB_PATH = os.path.join(os.path.dirname(__file__), '..', 'database', 'journal.db')
+DB_PATH = os.path.join(os.path.dirname(__file__), '../database/journal.db')
 
-def insert_journal_entry(entry):
-    """
-    Insère une entrée dans la base de données du journal.
-    """
+def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def create_entry(data):
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("""
-        INSERT INTO journal (
-            pair, entry, sl, tp, result,
-            risked_amount, strategy, emotion,
-            respected_plan, commentaire
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    """, (
-        entry['pair'],
-        entry['entry'],
-        entry['sl'],
-        entry['tp'],
-        entry['result'],
-        entry['risked_amount'],
-        entry['strategy'],
-        entry['emotion'],
-        entry['respected_plan'],
-        entry.get('commentaire', "")
+    cursor.execute('''
+        INSERT INTO journal (date, paire, type, lot, entry, sl, tp, rr, gain, note, tag, audio_path)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''', (
+        data.get('date', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+        data['paire'],
+        data['type'],
+        data['lot'],
+        data['entry'],
+        data['sl'],
+        data['tp'],
+        data['rr'],
+        data['gain'],
+        data['note'],
+        data.get('tag'),
+        data.get('audio_path')
     ))
 
     conn.commit()
     conn.close()
 
-def get_all_journal_entries():
-    """
-    Récupère toutes les entrées du journal depuis la base de données.
-    """
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # permet de convertir les lignes en dictionnaires
+def get_all_entries():
+    conn = get_db_connection()
+    entries = conn.execute('SELECT * FROM journal').fetchall()
+    conn.close()
+    return [dict(e) for e in entries]
+
+def update_entry(entry_id, data):
+    conn = get_db_connection()
     cursor = conn.cursor()
 
-    cursor.execute("SELECT * FROM journal ORDER BY created_at DESC")
-    rows = cursor.fetchall()
+    cursor.execute('''
+        UPDATE journal
+        SET date = ?, paire = ?, type = ?, lot = ?, entry = ?, sl = ?, tp = ?, rr = ?, gain = ?, note = ?, tag = ?, audio_path = ?
+        WHERE id = ?
+    ''', (
+        data.get('date', datetime.now().strftime('%Y-%m-%d %H:%M:%S')),
+        data['paire'],
+        data['type'],
+        data['lot'],
+        data['entry'],
+        data['sl'],
+        data['tp'],
+        data['rr'],
+        data['gain'],
+        data['note'],
+        data.get('tag'),
+        data.get('audio_path'),
+        entry_id
+    ))
+
+    conn.commit()
     conn.close()
 
-    return [dict(row) for row in rows]
+def delete_entry(entry_id):
+    conn = get_db_connection()
+    conn.execute('DELETE FROM journal WHERE id = ?', (entry_id,))
+    conn.commit()
+    conn.close()
