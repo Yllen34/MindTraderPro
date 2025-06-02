@@ -32,7 +32,7 @@ def register_blueprints(app):
     """Enregistre les blueprints pour les routes."""
     
     # Import dynamique pour éviter les dépendances circulaires
-    from backend.routes.main_routes import main_bp
+    from routes.main_routes import main_bp
     
     app.register_blueprint(main_bp, url_prefix='/api')
 
