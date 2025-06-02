@@ -33,3 +33,21 @@ def ajouter_entree_journal():
             "status": "error",
             "message": str(e)
         }), 500
+from services.journal_service import get_all_journal_entries
+
+@journal_bp.route('/journal', methods=['GET'])
+def lire_journal():
+    """
+    Retourne toutes les entrées du journal de trading.
+    """
+    try:
+        entries = get_all_journal_entries()
+        return jsonify({
+            "status": "success",
+            "data": entries
+        }), 200
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
