@@ -13,3 +13,8 @@ def home():
 @main_bp.route('/test-journal')
 def test_journal():
     return render_template("journal_tester.html")
+    from flask import render_template
+
+@main_bp.route('/test-journal', methods=['GET'])
+def test_journal():
+    return render_template('test_journal_complet.html')
