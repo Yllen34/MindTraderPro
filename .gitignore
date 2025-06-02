@@ -12,3 +12,5 @@ __pycache__/
 
 # Fichiers système
 .DS_Store
+
+backend/.env
