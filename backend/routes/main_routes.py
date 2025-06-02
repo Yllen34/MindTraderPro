@@ -1,20 +1,14 @@
-from flask import Blueprint, jsonify, render_template
+from flask import Blueprint, render_template, jsonify
 
+# Création du blueprint principal
 main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/')
-def home():
-    return jsonify({
-        "message": "MindTraderPro backend is running",
-        "status": "success",
-        "version": "1.0.0"
-    })
+# Route de test simple pour vérifier le bon fonctionnement
+@main_bp.route('/ping')
+def ping():
+    return jsonify({"message": "pong"})
 
+# Route pour afficher l'interface du journal de trading
 @main_bp.route('/test-journal')
-def test_journal():
-    return render_template("journal_tester.html")
-    from flask import render_template
-
-@main_bp.route('/test-journal', methods=['GET'])
 def test_journal():
     return render_template('test_journal_complet.html')
