@@ -1,23 +1,15 @@
-"""
-Blueprint pour les routes principales de l'application.
-Contient les endpoints de base comme /ping.
-"""
+from flask import Blueprint, jsonify, render_template
 
-from flask import Blueprint, jsonify
-
-# Création du Blueprint
 main_bp = Blueprint('main', __name__)
 
-@main_bp.route('/ping', methods=['GET'])
-def ping():
-    """
-    Endpoint de test pour vérifier l'état de l'API.
-    Retourne 'pong' avec un code HTTP 200.
-    """
-    return jsonify({"status": "success", "message": "pong"}), 200
+@main_bp.route('/')
+def home():
+    return jsonify({
+        "message": "MindTraderPro backend is running",
+        "status": "success",
+        "version": "1.0.0"
+    })
 
-from flask import render_template
-
-@app.route('/test-journal')
+@main_bp.route('/test-journal')
 def test_journal():
     return render_template("journal_tester.html")
