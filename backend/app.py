@@ -8,6 +8,9 @@ from flask_cors import CORS
 from dotenv import load_dotenv
 import os
 
+from routes.calculateur import calculateur_bp
+app.register_blueprint(calculateur_bp, url_prefix='/api')
+
 # Chargement des variables d'environnement
 load_dotenv()
 
